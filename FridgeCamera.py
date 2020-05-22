@@ -26,10 +26,10 @@ class FridgeCamera():
             return
         self._capturingVideo = True
         filename = "/home/pi/smart-fridge/" + filename + ".h264"
-        with self._camera as camera:
-            camera.resolution = (1920, 1080)
-            camera.annotate_text = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
-            camera.start_recording(filename)
+        self._camera.resolution = (1920, 1080)
+        self._camera.annotate_text = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        self._camera.start_recording(filename)
+        return filename
 
     def endVideo(self):
         if (self._capturingVideo):
