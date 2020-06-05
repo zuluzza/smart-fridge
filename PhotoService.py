@@ -3,6 +3,7 @@ from datetime import datetime
 from time import sleep
 import time
 import dropbox
+import os
 
 class DropboxCloud:
     def __init__(self, access_token):
@@ -11,9 +12,10 @@ class DropboxCloud:
     def uploadFile(self, filename):
         dbx = dropbox.Dropbox(self._accessToken)
 
-        with open(filename, "rb") as file:
+        with open(filename, "rb") as f:
             # this is for uploading < 150MB files. Let's trust it's enough
-            dbx.files_upload(file, "smartFridgeTest1")
+            #Note dropbox requires filename starts with '/'
+            dbx.files_upload(f.read(), "/video_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S")))
 
 class PhotoService:
     def __init__(self):
@@ -27,7 +29,11 @@ class PhotoService:
             token = file.readline()
             self._dropboxCloud = DropboxCloud(token.strip())
 
+    def stop(self):
+        self.stop = True
+
     def run(self):
+        i = 0
         while not self.stop:
             #TODO replace with door open detection to start a video
             videoName = "video_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S"))
@@ -39,11 +45,13 @@ class PhotoService:
             if self._dropboxCloud != None:
                 print("uploading to dropbox")
                 self._dropboxCloud.uploadFile(videoName)
+                #remove file when done uploading
+                os.remove(videoName)
             #self._camera.takePicture("picture_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S")))
-            stop()
 
-    def stop(self):
-        self.stop = True
+            i += 1
+            if (i > 4):
+                self.stop = True
 
 #TODO for testing now, to be removed when usage is moved up to a higher lever
 if __name__ == "__main__":
