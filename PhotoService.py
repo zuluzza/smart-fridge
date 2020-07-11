@@ -1,4 +1,5 @@
 from FridgeCamera import FridgeCamera
+from DoorState import DoorState
 from datetime import datetime
 from time import sleep
 import time
@@ -18,6 +19,7 @@ class PhotoService:
     def __init__(self):
         self.stop = False
         self._camera = FridgeCamera()
+        self._door = DoorState()
         self._dropboxCloud = None
 
     def initDropboxCloud(self):
@@ -27,14 +29,18 @@ class PhotoService:
             self._dropboxCloud = DropboxCloud(token.strip())
 
     def run(self):
+        capturingVideo = False #replace with a attribute of the camera?
         while not self.stop:
-            #TODO replace with door open detection to start a video
-            videoName = "video_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S"))
-            self._camera.startVideo(videoName)
-            sleep(10)
-            self._camera.endVideo()
-            if self._dropboxCloud != None:
-                self._dropboxCloud.uploadFile(filename)
+            if self._door.isOpen and not capturingVideo:
+                videoName = "video_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S"))
+                self._camera.startVideo(videoName)
+                capturingVideo = True
+                sleep(5) #forces minimum length for video
+            if capturingVideo and not self._door.isOpen:
+                self._camera.endVideo()
+                capturingVideo = False
+                if self._dropboxCloud != None:
+                    self._dropboxCloud.uploadFile(filename)
             #self._camera.takePicture("picture_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S")))
         
     def stop(self):
