@@ -38,25 +38,28 @@ class PhotoService:
         i = 0
         capturingVideo = False #replace with a attribute of the camera?
         while not self.stop:
-            if self._door.isOpen and not capturingVideo:
-                videoName = "video_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S"))
+            print("running with door state {} and capturing {}".format(self._door.getState(), capturingVideo))
+            if self._door.getState() and not capturingVideo:
+                videoName = "video_{}".format(datetime.now().strftime("%m_%d_%Y_%H_%M_%S"))
                 print("starting video")
                 self._camera.startVideo(videoName)
                 capturingVideo = True
                 sleep(5) #forces minimum length for video
-            if capturingVideo and not self._door.isOpen:
+            if capturingVideo and not self._door.getState():
                 print("stopping video")
                 self._camera.endVideo()
                 capturingVideo = False
                 if self._dropboxCloud != None:
-                    print("uploading to dropbox")
-                    self._dropboxCloud.uploadFile(filename)
+                    videoName = videoName + ".mp4"
+                    print("uploading to dropbox {}".format(videoName))
+                    self._dropboxCloud.uploadFile(videoName)
                     #remove file when done uploading
                     os.remove(videoName)
                     
                 i += 1
                 if (i > 4):
                     self.stop = True
+            sleep(1)
             #self._camera.takePicture("picture_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S")))
 
 #TODO for testing now, to be removed when usage is moved up to a higher lever
