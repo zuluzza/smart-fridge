@@ -6,6 +6,7 @@ import time
 import dropbox
 import os
 
+DATE_FORMAT_STRING = "%m_%d_%Y_%H_%M_%S"
 class DropboxCloud:
     def __init__(self, access_token):
         self._accessToken = access_token
@@ -16,7 +17,7 @@ class DropboxCloud:
         with open(filename, "rb") as f:
             # this is for uploading < 150MB files. Let's trust it's enough
             #Note dropbox requires filename starts with '/'
-            dbx.files_upload(f.read(), "/video_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S")))
+            dbx.files_upload(f.read(), "/video_{}".format(datetime.now().strftime(DATE_FORMAT_STRING)))
 
 class PhotoService:
     def __init__(self):
@@ -40,7 +41,7 @@ class PhotoService:
         while not self.stop:
             print("running with door state {} and capturing {}".format(self._door.getState(), capturingVideo))
             if self._door.getState() and not capturingVideo:
-                videoName = "video_{}".format(datetime.now().strftime("%m_%d_%Y_%H_%M_%S"))
+                videoName = "video_{}".format(datetime.now().strftime(DATE_FORMAT_STRING))
                 print("starting video")
                 self._camera.startVideo(videoName)
                 capturingVideo = True
@@ -60,7 +61,7 @@ class PhotoService:
                 if (i > 4):
                     self.stop = True
             sleep(1)
-            #self._camera.takePicture("picture_{}".format(datetime.now().strftime("%m.%d.%Y_%H:%M:%S")))
+            #self._camera.takePicture("picture_{}".format(datetime.now().strftime(DATE_FORMAT_STRING)))
 
 #TODO for testing now, to be removed when usage is moved up to a higher lever
 if __name__ == "__main__":
